@@ -293,8 +293,9 @@ function downloadAuditReport() {
     y += lines.length * lineHeight + gap;
   }
 
-  function addSection(title, number) {
-    ensureSpace(17);
+  function addSection(title, number, followingHeight = 0) {
+    // Keep the section heading with the first content block that follows it.
+    ensureSpace(17 + followingHeight);
     y += 3;
     doc.setFillColor(...paleBlue);
     doc.roundedRect(margin, y - 4, contentWidth, 10, 2, 2, "F");
@@ -306,17 +307,83 @@ function downloadAuditReport() {
   }
 
   function addKeyValue(label, value, color = slate) {
-    ensureSpace(7);
+    const labelText = `${label}:`;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    const labelWidth = doc.getTextWidth(labelText);
+    const useStackedLayout = labelWidth > contentWidth * 0.38;
+
+    if (useStackedLayout) {
+      const valueLines = doc.splitTextToSize(String(safe(value)), contentWidth - 2);
+      const blockHeight = 4.5 + valueLines.length * 4.3 + 2;
+      ensureSpace(blockHeight);
+      doc.setTextColor(...navy);
+      doc.text(labelText, margin + 1, y);
+      y += 4.5;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(...color);
+      doc.text(valueLines, margin + 1, y);
+      y += valueLines.length * 4.3 + 2;
+      return;
+    }
+
+    const valueLines = doc.splitTextToSize(
+      String(safe(value)),
+      contentWidth - labelWidth - 7
+    );
+    const rowHeight = Math.max(5, valueLines.length * 4.3) + 1.5;
+    ensureSpace(rowHeight);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
     doc.setTextColor(...navy);
-    doc.text(`${label}:`, margin + 1, y);
+    doc.text(labelText, margin + 1, y);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(...color);
-    const labelWidth = Math.min(doc.getTextWidth(`${label}:`) + 3, contentWidth * 0.48);
-    const valueLines = doc.splitTextToSize(String(safe(value)), contentWidth - labelWidth - 2);
-    doc.text(valueLines, margin + labelWidth, y);
-    y += Math.max(5, valueLines.length * 4.5) + 1.5;
+    doc.text(valueLines, margin + labelWidth + 5, y);
+    y += rowHeight;
+  }
+
+  function addShapContribution(item, scale = 1) {
+    const featureLabel = `${safe(item.feature, "Feature")}  (value: ${safe(item.feature_value)})`;
+    const shapValue = Number(item.shap_value);
+    const displayValue = Number.isFinite(shapValue) ? shapValue.toFixed(4) : "N/A";
+    const rowHeight = 13;
+    ensureSpace(rowHeight + 2);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    doc.setTextColor(...navy);
+    const labelLines = doc.splitTextToSize(featureLabel, contentWidth - 24);
+    doc.text(labelLines.slice(0, 2), margin + 1, y);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    doc.setTextColor(...(shapValue >= 0 ? green : amber));
+    doc.text(displayValue, pageWidth - margin - 1, y, { align: "right" });
+
+    const barY = y + (labelLines.length > 1 ? 7 : 5);
+    const centerX = margin + contentWidth / 2;
+    const halfBar = contentWidth * 0.38;
+    const barMax = Math.max(0.0001, Number(scale) || 0.0001);
+    doc.setDrawColor(226, 232, 240);
+    doc.line(centerX - halfBar, barY, centerX + halfBar, barY);
+    doc.setDrawColor(148, 163, 184);
+    doc.line(centerX, barY - 2, centerX, barY + 2);
+    if (Number.isFinite(shapValue)) {
+      const barLength = Math.min(halfBar, (Math.abs(shapValue) / barMax) * halfBar);
+      doc.setFillColor(...(shapValue >= 0 ? green : amber));
+      doc.roundedRect(
+        shapValue >= 0 ? centerX : centerX - barLength,
+        barY - 1.2,
+        barLength,
+        2.4,
+        0.8,
+        0.8,
+        "F"
+      );
+    }
+    y += rowHeight;
   }
 
   function addMetricTiles(items) {
@@ -424,7 +491,8 @@ function downloadAuditReport() {
   addKeyValue("Selection rate ratio", safe(dp.selection_rate_ratio));
   addKeyValue("Screening status", safe(dp.status), amber);
 
-  addSection("Equal Opportunity", "04", 42);
+  // Reserve enough room for the heading, all three metric tiles and its note.
+  addSection("Equal Opportunity", "04", 40);
   const eop = results.equal_opportunity || {};
   addMetricTiles([
     { label: "Male TPR", value: `${safe(eop.male_tpr)}%` },
@@ -462,30 +530,67 @@ function downloadAuditReport() {
 
   if (results.explainability) {
     const shap = results.explainability;
-    addSection("SHAP Explainability", "06");
+    // Keep the SHAP heading with its method, output scale and first explanation block.
+    addSection("SHAP Explainability", "06", 38);
     addKeyValue("Method", safe(shap.method, "SHAP"));
     addKeyValue("Output scale", safe(shap.output_scale));
-    addParagraph("Global feature importance (mean absolute SHAP values)", { bold: true, color: navy });
+
+    addParagraph("Global feature importance (mean absolute SHAP values)", {
+      bold: true,
+      color: navy,
+      gap: 3,
+    });
     (shap.global_feature_importance || []).forEach((item, index) => {
-      addKeyValue(`${index + 1}. ${item.feature}`, Number(item.importance).toFixed(4));
+      const importance = Number(item.importance);
+      addKeyValue(
+        `${index + 1}. ${item.feature}`,
+        Number.isFinite(importance) ? importance.toFixed(4) : "N/A"
+      );
     });
 
     const individual = shap.individual_prediction;
     if (individual) {
-      addParagraph("Sample individual prediction", { bold: true, color: navy, gap: 3 });
+      // Keep the individual prediction heading and summary tiles together.
+      ensureSpace(43);
+      addParagraph("Sample individual prediction", {
+        bold: true,
+        color: navy,
+        size: 10,
+        gap: 3,
+      });
       addMetricTiles([
-        { label: "Prediction", value: individual.predicted_class === 1 ? "Hired" : "Not hired" },
-        { label: "Hiring probability", value: `${safe(individual.probability_hired)}%` },
+        {
+          label: "Prediction",
+          value: individual.predicted_class === 1 ? "Hired" : "Not hired",
+        },
+        {
+          label: "Hiring probability",
+          value: `${safe(individual.probability_hired)}%`,
+        },
         { label: "Base value", value: safe(individual.base_value) },
       ]);
-      (individual.feature_contributions || []).forEach((item) => {
-        addKeyValue(
-          `${item.feature} (value: ${safe(item.feature_value)})`,
-          Number(item.shap_value).toFixed(4),
-          Number(item.shap_value) >= 0 ? green : amber
+
+      if ((individual.feature_contributions || []).length > 0) {
+        addParagraph("Feature contributions (SHAP values)", {
+          bold: true,
+          color: navy,
+          gap: 3,
+        });
+        const contributions = individual.feature_contributions || [];
+        const contributionScale = Math.max(
+          0.0001,
+          ...contributions.map((item) => Math.abs(Number(item.shap_value) || 0))
         );
-      });
+        contributions.forEach((item) =>
+          addShapContribution(item, contributionScale)
+        );
+        addParagraph(
+          "Positive contributions push the model output higher; negative contributions push it lower. The values are shown on the stated output scale.",
+          { size: 7.5, color: slate, lineHeight: 4, gap: 3 }
+        );
+      }
     }
+
     addParagraph(
       "SHAP values describe how features contribute to this model's output on the stated scale. They are not causal evidence and do not establish that a feature caused an outcome.",
       { size: 8, color: slate, lineHeight: 4.5 }
@@ -503,14 +608,14 @@ function downloadAuditReport() {
     addParagraph(`Recommended action: ${safe(item.recommendation)}`, { indent: 2, gap: 4 });
   });
 
-  addSection("Responsible AI Disclaimer", "08");
-  doc.setFillColor(255, 251, 235);
-  doc.setDrawColor(253, 230, 138);
   const disclaimerText =
     "Fairness metrics are screening indicators, not proof of discrimination. Recommendations require human review before implementation. Bias mitigation results are experimental and do not guarantee fairness. SHAP explanations describe model contributions, not causal effects.";
   const disclaimerLines = doc.splitTextToSize(disclaimerText, contentWidth - 12);
   const disclaimerHeight = disclaimerLines.length * 4.6 + 10;
-  ensureSpace(disclaimerHeight + 5);
+  // Reserve space for the disclaimer heading, its complete callout and the synthetic-data note.
+  addSection("Responsible AI Disclaimer", "08", disclaimerHeight + 28);
+  doc.setFillColor(255, 251, 235);
+  doc.setDrawColor(253, 230, 138);
   doc.roundedRect(margin, y - 3, contentWidth, disclaimerHeight, 2, 2, "FD");
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);
