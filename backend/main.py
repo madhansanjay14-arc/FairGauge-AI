@@ -1,5 +1,6 @@
 import pandas as pd
 import shap
+import os
 
 from io import BytesIO
 
@@ -42,17 +43,23 @@ app = FastAPI(
 # 2. ENABLE CORS FOR REACT FRONTEND
 # --------------------------------------------------
 
+frontend_origins = [
+    origin.strip()
+    for origin in os.getenv("FRONTEND_ORIGIN", "").split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
-        "http://127.0.0.1:5173"
+        "http://127.0.0.1:5173",
+        *frontend_origins
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 # --------------------------------------------------
 # 3. HOME ENDPOINT
