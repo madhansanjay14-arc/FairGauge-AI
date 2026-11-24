@@ -294,8 +294,67 @@ function downloadAuditReport() {
     );
   }
 
+  // SHAP explainability
+  if (results.explainability) {
+    const shap = results.explainability;
+
+    addSection("6. SHAP Explainability");
+    addText(`Method: ${shap.method || "SHAP"}`);
+    addText(`Output scale: ${shap.output_scale || "Not specified"}`);
+    addText(
+      "Global feature importance (mean absolute SHAP values):",
+      11,
+      true
+    );
+
+    const globalImportance = shap.global_feature_importance || [];
+    if (globalImportance.length > 0) {
+      globalImportance.forEach((item, index) => {
+        addText(
+          `${index + 1}. ${item.feature}: ${Number(item.importance).toFixed(4)}`
+        );
+      });
+    } else {
+      addText("Global feature importance was not provided.");
+    }
+
+    const individual = shap.individual_prediction;
+    if (individual) {
+      addText("Sample individual prediction:", 11, true);
+      addText(
+        `Predicted class: ${
+          individual.predicted_class === 1
+            ? "Hired (1)"
+            : individual.predicted_class === 0
+            ? "Not Hired (0)"
+            : individual.predicted_class
+        }`
+      );
+      addText(`Probability of Hired: ${individual.probability_hired ?? "N/A"}%`);
+      addText(`Base value: ${individual.base_value ?? "N/A"}`);
+      addText("Feature contributions:", 10, true);
+
+      const contributions = individual.feature_contributions || [];
+      if (contributions.length > 0) {
+        contributions.forEach((item) => {
+          addText(
+            `${item.feature} (value: ${item.feature_value ?? "N/A"}): ${Number(item.shap_value).toFixed(4)}`
+          );
+        });
+      } else {
+        addText("Individual feature contributions were not provided.");
+      }
+    } else {
+      addText("No individual prediction explanation was provided.");
+    }
+
+    addText(
+      "Interpretation: SHAP values describe how features contribute to this model's output. Positive and negative values move the prediction in different directions on the stated output scale. These explanations are not causal evidence and do not establish that a feature caused an outcome."
+    );
+  }
+
   // Recommendations
-  addSection("6. Audit Recommendations");
+  addSection("7. Audit Recommendations");
 
   (results.recommendations || []).forEach((item, index) => {
     addText(`${index + 1}. ${item.category} - ${item.severity} Priority`, 11, true);
@@ -304,7 +363,7 @@ function downloadAuditReport() {
   });
 
   // Disclaimer
-  addSection("7. Disclaimer");
+  addSection("8. Disclaimer");
 
   addText(results.disclaimer);
   addText(
