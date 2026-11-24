@@ -5,6 +5,7 @@ from io import BytesIO
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pandas.errors import EmptyDataError, ParserError
 
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
@@ -101,7 +102,24 @@ async def audit_dataset(file: UploadFile = File(...)):
 
         contents = await file.read()
 
-        data = pd.read_csv(BytesIO(contents))
+        if not contents or not contents.strip():
+            raise HTTPException(
+                status_code=400,
+                detail="The uploaded CSV file is empty. Please upload a CSV containing column headers and data records."
+            )
+
+        try:
+            data = pd.read_csv(BytesIO(contents))
+        except EmptyDataError:
+            raise HTTPException(
+                status_code=400,
+                detail="The uploaded CSV file is empty or does not contain a valid header row."
+            )
+        except ParserError:
+            raise HTTPException(
+                status_code=400,
+                detail="The CSV file could not be read. Please check its formatting and try again."
+            )
 
         required_columns = [
             "gender",
@@ -119,19 +137,26 @@ async def audit_dataset(file: UploadFile = File(...)):
         if missing:
             raise HTTPException(
                 status_code=400,
-                detail=f"Missing columns: {missing}"
+                detail=f"Missing required columns: {', '.join(missing)}"
             )
 
         if data.empty:
             raise HTTPException(
                 status_code=400,
-                detail="The uploaded dataset is empty."
+                detail="The uploaded dataset has column headers but no data records. Please add at least one data row."
             )
 
         if data[required_columns].isnull().any().any():
+            missing_columns = data[required_columns].columns[
+                data[required_columns].isnull().any()
+            ].tolist()
             raise HTTPException(
                 status_code=400,
-                detail="Dataset contains missing values."
+                detail=(
+                    "Dataset contains missing values in: "
+                    f"{', '.join(missing_columns)}. "
+                    "Please fill in these values before running the audit."
+                )
             )
 
         # --------------------------------------------------
@@ -146,10 +171,25 @@ async def audit_dataset(file: UploadFile = File(...)):
         ]
 
         for col in numeric_columns:
-            data[col] = pd.to_numeric(
-                data[col],
-                errors="raise"
+            original_values = data[col].copy()
+            converted_values = pd.to_numeric(
+                original_values,
+                errors="coerce"
             )
+
+            invalid_mask = converted_values.isna() & original_values.notna()
+
+            if invalid_mask.any():
+                invalid_value = str(original_values[invalid_mask].iloc[0])
+                raise HTTPException(
+                    status_code=400,
+                    detail=(
+                        f"Invalid numeric value in the '{col}' column: "
+                        f"'{invalid_value}'. Please enter valid numbers only."
+                    )
+                )
+
+            data[col] = converted_values
 
         if not data["hired"].isin([0, 1]).all():
             raise HTTPException(
@@ -205,13 +245,23 @@ async def audit_dataset(file: UploadFile = File(...)):
         # STEP 3: SPLIT DATASET
         # --------------------------------------------------
 
-        X_train, X_test, y_train, y_test = train_test_split(
-            X,
-            y,
-            test_size=0.2,
-            random_state=42,
-            stratify=y
-        )
+        try:
+            X_train, X_test, y_train, y_test = train_test_split(
+                X,
+                y,
+                test_size=0.2,
+                random_state=42,
+                stratify=y
+            )
+        except ValueError as error:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "The dataset does not contain enough records in each "
+                    "hiring outcome group to create a reliable train/test split. "
+                    "Please upload a larger dataset with examples of both outcomes."
+                )
+            )
 
         # --------------------------------------------------
         # STEP 4: TRAIN ORIGINAL MACHINE LEARNING MODEL
@@ -226,8 +276,26 @@ async def audit_dataset(file: UploadFile = File(...)):
             y_train
         )
 
-        # Original model predictions
+        # Original model predictions and probabilities
         predictions = model.predict(X_test)
+        prediction_probabilities = model.predict_proba(X_test)[:, 1]
+
+        # Keep only the held-out test labels, protected-group labels and
+        # probabilities needed for the interactive threshold simulator.
+        # No training data or personally identifying fields are returned.
+        simulator_groups = data.loc[X_test.index, "gender"].astype(str)
+        threshold_simulator_data = [
+            {
+                "actual": int(actual),
+                "group": str(group),
+                "probability": float(probability),
+            }
+            for actual, group, probability in zip(
+                y_test.tolist(),
+                simulator_groups.tolist(),
+                prediction_probabilities.tolist(),
+            )
+        ]
 
         # --------------------------------------------------
         # STEP 4B: TRAIN BIAS-MITIGATED MODEL
@@ -565,6 +633,9 @@ async def audit_dataset(file: UploadFile = File(...)):
 
             "equal_opportunity": eop_report,
 
+            # Held-out test-set data for the interactive threshold simulator
+            "threshold_simulator": threshold_simulator_data,
+
             # Bias mitigation experiment results
             "mitigation": {
 
@@ -606,9 +677,8 @@ async def audit_dataset(file: UploadFile = File(...)):
     except HTTPException:
         raise
 
-    except Exception as error:
-
+    except Exception:
         raise HTTPException(
-            status_code=400,
-            detail=str(error)
+            status_code=500,
+            detail="The audit could not be completed because of an unexpected server error. Please verify the dataset and try again."
         )
