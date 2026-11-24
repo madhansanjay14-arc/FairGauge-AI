@@ -32,6 +32,9 @@ import {
   Legend,
 } from "recharts";
 
+const API_BASE_URL = (
+  import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000"
+).replace(/\/$/, "");
 
 // Parse CSV text while supporting quoted values and commas inside quotes.
 function parseCSVText(text) {
@@ -124,7 +127,7 @@ function App() {
 
   useEffect(() => {
     let mounted = true;
-    fetch("http://127.0.0.1:8000/health")
+    fetch(`${API_BASE_URL}/health`)
       .then((response) => {
         if (!response.ok) throw new Error("Backend unavailable");
         return response.json();
@@ -184,7 +187,7 @@ function App() {
     try {
 
       const response = await fetch(
-        "http://127.0.0.1:8000/audit",
+        `${API_BASE_URL}/audit`,
         {
           method: "POST",
           body: formData,
@@ -920,7 +923,7 @@ const individualPrediction =
           )}
 
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-xs text-slate-500">Your CSV is previewed in the browser and sent to the local audit API when you run the audit.</p>
+            <p className="text-xs text-slate-500">Your CSV is previewed in the browser and sent to the configured audit API when you run the audit.</p>
             <div className="flex flex-wrap items-center gap-3">
               <button
                 type="button"
@@ -2120,7 +2123,7 @@ const individualPrediction =
               <div className="settings-card rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <div className="mb-5 flex items-center gap-3"><div className="rounded-xl bg-emerald-50 p-3 text-emerald-600"><Activity size={22} /></div><div><h3 className="text-lg font-bold">System status</h3><p className="text-sm text-slate-500">Current application connectivity.</p></div></div>
                 <div className="flex items-center justify-between rounded-xl bg-slate-50 p-4"><span className="text-sm font-medium text-slate-600">FastAPI backend</span><span className={`rounded-full px-3 py-1 text-xs font-bold ${apiStatus === "online" ? "bg-emerald-100 text-emerald-700" : apiStatus === "offline" ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-700"}`}>{apiStatus === "online" ? "Connected" : apiStatus === "offline" ? "Not reachable" : "Checking"}</span></div>
-                <p className="mt-3 break-all text-xs text-slate-500">API endpoint: http://127.0.0.1:8000</p>
+                <p className="mt-3 break-all text-xs text-slate-500">API endpoint: {API_BASE_URL}</p>
                 <p className="mt-2 text-xs text-slate-500">Status is checked when the application opens. Start the FastAPI server if the backend is offline.</p>
               </div>
 
