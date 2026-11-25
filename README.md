@@ -1,6 +1,6 @@
-\# FairGauge AI
+﻿# FairGauge AI
 
-\### Responsible AI Auditing \& Optimization Platform
+### Responsible AI Auditing & Optimization Platform
 
 
 
@@ -12,11 +12,11 @@ It helps developers and organizations understand how AI models make predictions,
 
 
 
-\---
+---
 
 
 
-\## 1. Problem Statement
+## 1. Problem Statement
 
 
 
@@ -28,37 +28,37 @@ Traditional model evaluation mainly focuses on performance metrics such as accur
 
 
 
-\*\*FairGauge AI addresses this challenge by combining model performance evaluation, fairness auditing, explainability, and mitigation analysis in one platform.\*\*
+**FairGauge AI addresses this challenge by combining model performance evaluation, fairness auditing, explainability, and mitigation analysis in one platform.**
 
 
 
-\## 2. Key Features
+## 2. Key Features
 
 
 
-\- \*\*CSV Dataset Upload:\*\* Upload structured CSV datasets for auditing.
+- **CSV Dataset Upload:** Upload structured CSV datasets for auditing.
 
-\- \*\*Dataset Inspection:\*\* Examine records, columns, missing values, duplicate records, and basic statistics.
+- **Dataset Inspection:** Examine records, columns, missing values, duplicate records, and basic statistics.
 
-\- \*\*AI Model Evaluation:\*\* Evaluate model performance using accuracy, precision, recall, and F1-score.
+- **AI Model Evaluation:** Evaluate model performance using accuracy, precision, recall, and F1-score.
 
-\- \*\*Fairness Auditing:\*\* Calculate demographic parity, selection rates, selection rate ratio, and equal opportunity metrics.
+- **Fairness Auditing:** Calculate demographic parity, selection rates, selection rate ratio, and equal opportunity metrics.
 
-\- \*\*Disparity Detection:\*\* Identify potential differences in model outcomes between demographic groups.
+- **Disparity Detection:** Identify potential differences in model outcomes between demographic groups.
 
-\- \*\*Explainable AI:\*\* Use SHAP to understand feature contributions to model predictions.
+- **Explainable AI:** Use SHAP to understand feature contributions to model predictions.
 
-\- \*\*Bias Mitigation:\*\* Apply a reweighing technique to explore changes in fairness and model performance.
+- **Bias Mitigation:** Apply a reweighing technique to explore changes in fairness and model performance.
 
-\- \*\*Recommendations:\*\* Generate recommendations based on detected fairness and performance issues.
+- **Recommendations:** Generate recommendations based on detected fairness and performance issues.
 
-\- \*\*What-If Analysis:\*\* Explore fairness metric changes using adjustable thresholds.
+- **What-If Analysis:** Explore fairness metric changes using adjustable thresholds.
 
-\- \*\*PDF Audit Reports:\*\* Export audit findings and results as PDF reports.
+- **PDF Audit Reports:** Export audit findings and results as PDF reports.
 
 
 
-\## 3. Application Preview
+## 3. Application Preview
 
 
 
@@ -66,7 +66,7 @@ Traditional model evaluation mainly focuses on performance metrics such as accur
 
 
 
-\## 4. System Architecture
+## 4. System Architecture
 
 
 
@@ -154,7 +154,7 @@ Traditional model evaluation mainly focuses on performance metrics such as accur
 
 
 
-\## 5. Technology Stack
+## 5. Technology Stack
 
 
 
@@ -186,7 +186,7 @@ Traditional model evaluation mainly focuses on performance metrics such as accur
 
 
 
-\## 6. Fairness Metrics
+## 6. Fairness Metrics
 
 
 
@@ -194,7 +194,7 @@ FairGauge AI evaluates model fairness using the following metrics.
 
 
 
-\### Demographic Parity Difference (DPD)
+### Demographic Parity Difference (DPD)
 
 
 
@@ -206,7 +206,7 @@ Measures the difference in positive prediction rates between two demographic gro
 
 
 
-\### Selection Rate Ratio (SRR)
+### Selection Rate Ratio (SRR)
 
 
 
@@ -218,7 +218,7 @@ Measures the ratio between the lower and higher group selection rates.
 
 
 
-\### True Positive Rate (TPR)
+### True Positive Rate (TPR)
 
 
 
@@ -230,7 +230,7 @@ Measures the proportion of actual positive cases correctly predicted.
 
 
 
-\### Equal Opportunity Difference (EOD)
+### Equal Opportunity Difference (EOD)
 
 
 
@@ -246,11 +246,11 @@ These metrics are used as fairness screening indicators. Their interpretation de
 
 
 
-\## 7. Experimental Results
+## 7. Experimental Results
 
 
 
-The current demonstration uses a \*\*synthetic hiring dataset containing 500 records\*\*.
+The current demonstration uses a **synthetic hiring dataset containing 500 records**.
 
 
 
@@ -262,7 +262,7 @@ A Logistic Regression model is trained using an 80:20 train-test split.
 
 
 
-\### Original Model Results
+### Original Model Results
 
 
 
@@ -290,7 +290,7 @@ A Logistic Regression model is trained using an 80:20 train-test split.
 
 
 
-\### After Bias Mitigation
+### After Bias Mitigation
 
 
 
@@ -312,7 +312,7 @@ FairGauge AI applies a reweighing technique to adjust training sample weights.
 
 
 
-\*\*Key Observation:\*\*
+**Key Observation:**
 
 
 
@@ -328,11 +328,11 @@ This demonstrates the trade-off that can occur between model performance and fai
 
 
 
-\*Note: These results are from a synthetic demonstration dataset and should not be interpreted as evidence of real-world discrimination or model performance.\*
+*Note: These results are from a synthetic demonstration dataset and should not be interpreted as evidence of real-world discrimination or model performance.*
 
 
 
-\## 8. Bias Mitigation Methodology
+## 8. Bias Mitigation Methodology
 
 
 
@@ -356,7 +356,7 @@ Mitigation is not guaranteed to eliminate bias. Its effectiveness must be evalua
 
 
 
-\## 9. Explainable AI
+## 9. Explainable AI
 
 
 
@@ -368,11 +368,11 @@ The platform provides:
 
 
 
-\- Global feature importance using mean absolute SHAP values.
+- Global feature importance using mean absolute SHAP values.
 
-\- Local explanations for individual predictions.
+- Local explanations for individual predictions.
 
-\- Insights into how features contribute to model outputs.
+- Insights into how features contribute to model outputs.
 
 
 
@@ -380,7 +380,7 @@ SHAP explanations describe model behaviour; they do not establish causal relatio
 
 
 
-\## 10. Project Structure
+## 10. Project Structure
 
 
 
@@ -400,11 +400,11 @@ FairGauge-AI/
 
 |   |-- recommendations.py
 
-|   |-- create\_dataset.py
+|   |-- create_dataset.py
 
-|   |-- train\_model.py
+|   |-- train_model.py
 
-|   |-- test\_fairness.py
+|   |-- test_fairness.py
 
 |
 
@@ -444,23 +444,23 @@ FairGauge-AI/
 
 
 
-\## 11. Installation and Setup
+## 11. Installation and Setup
 
 
 
-\### Prerequisites
+### Prerequisites
 
 
 
-\- Python 3.10 or later
+- Python 3.10 or later
 
-\- Node.js and npm
+- Node.js and npm
 
-\- Git
+- Git
 
 
 
-\### Step 1: Clone the Repository
+### Step 1: Clone the Repository
 
 
 
@@ -476,7 +476,7 @@ cd FairGauge-AI
 
 
 
-\### Step 2: Set Up the Backend
+### Step 2: Set Up the Backend
 
 
 
@@ -544,7 +544,7 @@ API documentation:
 
 
 
-\### Step 3: Set Up the Frontend
+### Step 3: Set Up the Frontend
 
 
 
@@ -578,7 +578,7 @@ Create a `.env` file inside the frontend directory:
 
 ```env
 
-VITE\_API\_BASE\_URL=http://127.0.0.1:8000
+VITE_API_BASE_URL=http://127.0.0.1:8000
 
 ```
 
@@ -604,11 +604,11 @@ Frontend URL:
 
 
 
-\*\*Note:\*\* Keep the backend and frontend running in separate terminals. Restart the Vite development server after changing environment variables.
+**Note:** Keep the backend and frontend running in separate terminals. Restart the Vite development server after changing environment variables.
 
 
 
-\## 12. API Endpoints
+## 12. API Endpoints
 
 
 
@@ -632,7 +632,7 @@ Interactive API documentation is available at:
 
 
 
-\## 13. Dataset Requirements
+## 13. Dataset Requirements
 
 
 
@@ -648,9 +648,9 @@ The demonstration hiring dataset uses the following columns:
 
 | experience | Years of experience |
 
-| test\_score | Assessment score |
+| test_score | Assessment score |
 
-| interview\_score | Interview score |
+| interview_score | Interview score |
 
 | hired | Hiring outcome (0 or 1) |
 
@@ -664,81 +664,82 @@ The dataset is synthetic and is intended for demonstration and experimentation.
 
 
 
-\## 14. Limitations
+## 14. Limitations
 
 
 
-\- Current experimental results use a synthetic hiring dataset.
+- Current experimental results use a synthetic hiring dataset.
 
-\- Fairness metrics depend on the selected demographic groups and evaluation criteria.
+- Fairness metrics depend on the selected demographic groups and evaluation criteria.
 
-\- Reweighing does not guarantee that all disparities will be eliminated.
+- Reweighing does not guarantee that all disparities will be eliminated.
 
-\- SHAP explanations describe model behaviour rather than causality.
+- SHAP explanations describe model behaviour rather than causality.
 
-\- Results from synthetic data cannot establish fairness in real-world AI systems.
-
-
-
-\## 15. Future Improvements
+- Results from synthetic data cannot establish fairness in real-world AI systems.
 
 
 
-\- Support additional fairness metrics and mitigation algorithms.
-
-\- Extend auditing to multiple demographic attributes.
-
-\- Evaluate models using larger and more diverse real-world datasets.
-
-\- Add support for additional machine learning models.
-
-\- Improve audit reporting and explainability.
-
-\- Explore continuous fairness monitoring.
+## 15. Future Improvements
 
 
 
-\## 16. Live Demo and Repository
+- Support additional fairness metrics and mitigation algorithms.
+
+- Extend auditing to multiple demographic attributes.
+
+- Evaluate models using larger and more diverse real-world datasets.
+
+- Add support for additional machine learning models.
+
+- Improve audit reporting and explainability.
+
+- Explore continuous fairness monitoring.
 
 
 
-\*\*GitHub Repository:\*\*  
+## 16. Live Demo and Repository
+
+
+
+**GitHub Repository:**  
 
 https://github.com/madhansanjay14-arc/FairGauge-AI
 
 
 
-\*\*Live Application:\*\*  
+**Live Application:**  
 
 https://fair-gauge-ai.vercel.app/
 
 
 
-\*\*Backend API:\*\*  
+**Backend API:**  
 
 https://fairgauge-ai-backend.onrender.com
 
 
 
-\## 17. Team
+## 17. Team
 
 
 
-\*\*Team Name:\*\* DataWizards
+**Team Name:** DataWizards
 
 
 
-\*\*Institution:\*\* Sri Krishna College of Engineering and Technology (SKCET)
+**Institution:** Sri Krishna College of Engineering and Technology (SKCET)
 
 
 
-\*\*Project:\*\* FairGauge AI – Responsible AI Auditing \& Optimization Platform
+**Project:** FairGauge AI â€“ Responsible AI Auditing & Optimization Platform
 
 
 
-\---
+---
 
 
 
-\*FairGauge AI aims to make AI systems more transparent, accountable, and fair through measurable auditing, explainability, and responsible optimization.\*
+*FairGauge AI aims to make AI systems more transparent, accountable, and fair through measurable auditing, explainability, and responsible optimization.*
+
 
